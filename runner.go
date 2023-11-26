@@ -201,7 +201,7 @@ func (inst *innerRunner) listUnits(ac application.Context) ([]*Registration, err
 		obj := ci.Get()
 		reg, ok := obj.(Units)
 		if ok {
-			all = reg.ListUnits(all)
+			all = reg.Units(all)
 		}
 	}
 

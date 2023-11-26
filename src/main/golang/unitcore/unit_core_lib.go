@@ -14,8 +14,8 @@ type UnitCore struct {
 	_as func(application.Lifecycle) //starter:as("#")
 
 	AC      application.Context //starter:inject("context")
-	RunAll  bool                //starter:inject("${test.units.run.all}")
-	RunList string              //starter:inject("${test.units.run.list}")
+	RunAll  bool                //starter:inject("${test.units.run-all}")
+	RunList string              //starter:inject("${test.units.run-list}")
 
 }
 

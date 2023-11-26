@@ -10,5 +10,5 @@ type Registration struct {
 
 // Units 测试单元注册接口
 type Units interface {
-	ListUnits(list []*Registration) []*Registration
+	Units(list []*Registration) []*Registration
 }

@@ -17,8 +17,8 @@ func (inst *Test1) _impl() units.Units {
 	return inst
 }
 
-// ListUnits ...
-func (inst *Test1) ListUnits(list []*units.Registration) []*units.Registration {
+// Units ...
+func (inst *Test1) Units(list []*units.Registration) []*units.Registration {
 
 	list = append(list, &units.Registration{
 		Enabled:  false,
@@ -38,6 +38,12 @@ func (inst *Test1) ListUnits(list []*units.Registration) []*units.Registration {
 		Name:     "test-3",
 		Test:     inst.test3,
 	})
+	list = append(list, &units.Registration{
+		Enabled:  true,
+		Priority: 0,
+		Name:     "test-4",
+		Test:     inst.test4,
+	})
 
 	return list
 }
@@ -53,4 +59,8 @@ func (inst *Test1) test2() error {
 func (inst *Test1) test3() error {
 	panic("test3: panic")
 	// return nil
+}
+
+func (inst *Test1) test4() error {
+	return nil
 }

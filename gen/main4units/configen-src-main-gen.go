@@ -51,12 +51,12 @@ func (inst*p0b30545e5e_unitcore_UnitCore) getAC(ie application.InjectionExt)p0ef
 
 
 func (inst*p0b30545e5e_unitcore_UnitCore) getRunAll(ie application.InjectionExt)bool{
-    return ie.GetBool("${test.units.run.all}")
+    return ie.GetBool("${test.units.run-all}")
 }
 
 
 func (inst*p0b30545e5e_unitcore_UnitCore) getRunList(ie application.InjectionExt)string{
-    return ie.GetString("${test.units.run.list}")
+    return ie.GetString("${test.units.run-list}")
 }
 
 
