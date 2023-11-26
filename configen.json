@@ -1,0 +1,33 @@
+{
+    "configen": {
+        "version": "4",
+        "sources": [
+            {
+                "id": "main",
+                "path": "src/main/golang/unitcore",
+                "r": true
+            },
+            {
+                "id": "test",
+                "path": "src/test/golang/unit",
+                "r": true
+            }
+        ],
+        "destinations": [
+            {
+                "id": "main",
+                "path": "gen/main4units",
+                "sources": [
+                    "main"
+                ]
+            },
+            {
+                "id": "test",
+                "path": "gen/test4units",
+                "sources": [
+                    "test"
+                ]
+            }
+        ]
+    }
+}
