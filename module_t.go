@@ -4,26 +4,47 @@ import (
 	"embed"
 
 	"github.com/starter-go/application"
-	"github.com/starter-go/starter"
 )
 
 const (
-	theMainModuleName     = "github.com/starter-go/units"
-	theMainModuleVersion  = "v0.0.3"
-	theMainModuleRevision = 3
-	theMainModuleResPath  = "src/main/resources"
+	theModuleName     = "github.com/starter-go/units"
+	theModuleVersion  = "v0.0.3"
+	theModuleRevision = 3
+)
+
+////////////////////////////////////////////////////////////////////////////////
+
+const (
+	theSrcMainResPath = "src/main/resources"
+	theSrcTestResPath = "src/test/resources"
 )
 
 //go:embed "src/main/resources"
-var theMainModuleResFS embed.FS
+var theSrcMainResFS embed.FS
 
-// ModuleT 创建模块 [github.com/starter-go/units]
-func ModuleT() *application.ModuleBuilder {
+//go:embed "src/test/resources"
+var theSrcTestResFS embed.FS
+
+////////////////////////////////////////////////////////////////////////////////
+
+// ModuleMainT 创建模块 [github.com/starter-go/units]
+func ModuleMainT() *application.ModuleBuilder {
 	mb := &application.ModuleBuilder{}
-	mb.Name(theMainModuleName)
-	mb.Version(theMainModuleVersion)
-	mb.Revision(theMainModuleRevision)
-	mb.EmbedResources(theMainModuleResFS, theMainModuleResPath)
-	mb.Depend(starter.Module())
+	mb.Name(theModuleName)
+	mb.Version(theModuleVersion)
+	mb.Revision(theModuleRevision)
+	mb.EmbedResources(theSrcMainResFS, theSrcMainResPath)
+	// mb.Depend(starter.Module())
+	return mb
+}
+
+// ModuleTestT 创建模块 [github.com/starter-go/units]
+func ModuleTestT() *application.ModuleBuilder {
+	mb := &application.ModuleBuilder{}
+	mb.Name(theModuleName + "#test")
+	mb.Version(theModuleVersion)
+	mb.Revision(theModuleRevision)
+	mb.EmbedResources(theSrcTestResFS, theSrcTestResPath)
+	// mb.Depend(starter.Module())
 	return mb
 }

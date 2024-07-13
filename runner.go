@@ -9,20 +9,23 @@ import (
 	"github.com/starter-go/application"
 	"github.com/starter-go/base/util"
 	"github.com/starter-go/starter"
-	"github.com/starter-go/units/gen/main4units"
 	"github.com/starter-go/units/src/main/golang/unitcore"
 	"github.com/starter-go/vlog"
 )
 
 // Runner 单元测试执行器
 type Runner interface {
-	Dependencies(deps ...application.Module) Runner
 
-	ModuleT(mb *application.ModuleBuilder) Runner
+	// Dependencies(deps ...application.Module) Runner
+	// ModuleT(mb *application.ModuleBuilder) Runner
+
+	Module(m application.Module) Runner
 
 	Testing(t *testing.T) Runner
 
 	EnablePanic(enabled bool) Runner
+
+	SetProperties(table map[string]string) Runner
 
 	Run(args []string) error
 }
@@ -35,19 +38,31 @@ func NewRunner() Runner {
 ////////////////////////////////////////////////////////////////////////////////
 
 type runner struct {
-	deps    []application.Module
-	mb      *application.ModuleBuilder
+	deps []application.Module
+	// mb      *application.ModuleBuilder
+	mod     application.Module
 	t       *testing.T
+	props   map[string]string
 	enPanic bool
 }
 
-func (inst *runner) Dependencies(mods ...application.Module) Runner {
-	inst.deps = mods
+// func (inst *runner) Dependencies(mods ...application.Module) Runner {
+// 	inst.deps = mods
+// 	return inst
+// }
+
+// func (inst *runner) ModuleT(mb *application.ModuleBuilder) Runner {
+// 	inst.mb = mb
+// 	return inst
+// }
+
+func (inst *runner) Module(m application.Module) Runner {
+	inst.mod = m
 	return inst
 }
 
-func (inst *runner) ModuleT(mb *application.ModuleBuilder) Runner {
-	inst.mb = mb
+func (inst *runner) SetProperties(t map[string]string) Runner {
+	inst.props = t
 	return inst
 }
 
@@ -90,14 +105,19 @@ type innerRunner struct {
 
 func (inst *innerRunner) run(args []string) error {
 	i := starter.Init(args)
-	i.MainModule(inst.makeMainModule())
+	i.MainModule(inst.getTargetModule())
 	i.WithPanic(inst.parent.enPanic)
 	inst.setupRunnerHolder(i)
+	inst.loadAdditionProps(i)
 	err := i.Run()
 	if err != nil {
 		return err
 	}
 	return inst.countErrors()
+}
+
+func (inst *innerRunner) getTargetModule() application.Module {
+	return inst.parent.mod
 }
 
 func (inst *innerRunner) countErrors() error {
@@ -113,38 +133,46 @@ func (inst *innerRunner) countErrors() error {
 	return fmt.Errorf("%d error(s)", count)
 }
 
-func (inst *innerRunner) makeCoreModule() application.Module {
-	mb := ModuleT()
-	mb.Components(main4units.ExportConfig)
-	return mb.Create()
-}
+// func (inst *innerRunner) makeCoreModule() application.Module {
+// 	mb := ModuleT()
+// 	mb.Components(main4units.ExportConfig)
+// 	return mb.Create()
+// }
 
-func (inst *innerRunner) makeMainModule() application.Module {
+// func (inst *innerRunner) makeMainModule() application.Module {
 
-	core := inst.makeCoreModule()
+// 	core := inst.makeCoreModule()
 
-	mb := inst.parent.mb
-	if mb == nil {
-		mb = &application.ModuleBuilder{}
-	}
-	mb.Name(core.Name() + "#main")
-	mb.Version(core.Version())
-	mb.Revision(core.Revision())
-	mb.EmbedResources(theMainModuleResFS, theMainModuleResPath)
+// 	mb := inst.parent.mb
+// 	if mb == nil {
+// 		mb = &application.ModuleBuilder{}
+// 	}
+// 	mb.Name(core.Name() + "#main")
+// 	mb.Version(core.Version())
+// 	mb.Revision(core.Revision())
+// 	mb.EmbedResources(theMainModuleResFS, theMainModuleResPath)
 
-	deps := inst.parent.deps
-	if deps != nil {
-		mb.Depend(deps...)
-	}
-	mb.Depend(core)
+// 	deps := inst.parent.deps
+// 	if deps != nil {
+// 		mb.Depend(deps...)
+// 	}
+// 	mb.Depend(core)
 
-	return mb.Create()
-}
+// 	return mb.Create()
+// }
 
 func (inst *innerRunner) setupRunnerHolder(i starter.Initializer) {
 	holder := &unitcore.RunnerHolder{Run: inst.runWithContext}
 	name := holder.AttributeName()
 	i.GetAttributes().SetAttribute(name, holder)
+}
+
+func (inst *innerRunner) loadAdditionProps(i starter.Initializer) {
+	src := inst.parent.props
+	dst := i.GetProperties()
+	for key, val := range src {
+		dst.SetProperty(key, val)
+	}
 }
 
 func (inst *innerRunner) runWithContext(ctx *unitcore.Context) error {
