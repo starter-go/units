@@ -2,6 +2,7 @@ package units
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -175,11 +176,23 @@ func (inst *innerRunner) loadAdditionProps(i starter.Initializer) {
 	}
 }
 
+func (inst *innerRunner) printUnitsList(all []*Registration) {
+	names := make([]string, 0)
+	for _, r1 := range all {
+		names = append(names, r1.Name)
+	}
+	sort.Strings(names)
+	for i, str := range names {
+		vlog.Info("units[%d].name = %s", i, str)
+	}
+}
+
 func (inst *innerRunner) runWithContext(ctx *unitcore.Context) error {
 	all, err := inst.listUnits(ctx.ApplicationContext)
 	if err != nil {
 		return err
 	}
+	inst.printUnitsList(all)
 	if ctx.RunAll {
 		for _, item := range all {
 			err := inst.runUnit(ctx, item)
