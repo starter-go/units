@@ -192,7 +192,7 @@ func (inst *innerRunner) runWithContext(ctx *unitcore.Context) error {
 	if err != nil {
 		return err
 	}
-	inst.printUnitsList(all)
+	// inst.printUnitsList(all)
 	if ctx.RunAll {
 		for _, item := range all {
 			err := inst.runUnit(ctx, item)
@@ -245,6 +245,8 @@ func (inst *innerRunner) listUnits(ac application.Context) ([]*Registration, err
 			all = reg.Units(all)
 		}
 	}
+
+	inst.printUnitsList(all)
 
 	// filter
 	dst := make([]*Registration, 0)
