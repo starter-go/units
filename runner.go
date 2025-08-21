@@ -128,7 +128,11 @@ func (inst *innerRunner) countErrors() error {
 
 	count := inst.countError
 	if count == 0 {
-		vlog.Info("units::success")
+		// vlog.Info("units::success")
+		lv := vlog.INFO
+		vlog.ForLog(lv, func(l vlog.Logger) {
+			l.Log(lv, "units::success")
+		})
 		return nil
 	}
 	return fmt.Errorf("%d error(s)", count)
@@ -332,11 +336,23 @@ func (inst *innerRunner) onUnitEnd(ctx *unitcore.Context, u *Registration) {
 		} else {
 			b.WriteString("[OK]")
 		}
-		vlog.Info(b.String())
+
+		// vlog.Info(b.String())
+		lv := vlog.INFO
+		vlog.ForLog(lv, func(l vlog.Logger) {
+			l.Log(lv, "%v", b.String())
+		})
+
 	} else {
 		b.WriteString("Error:")
 		b.WriteString(err.Error())
-		vlog.Error(b.String())
+
+		// vlog.Error(b.String())
+		lv := vlog.ERROR
+		vlog.ForLog(lv, func(l vlog.Logger) {
+			l.Log(lv, "%v", b.String())
+		})
+
 		inst.countError++
 	}
 

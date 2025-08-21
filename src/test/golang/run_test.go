@@ -6,6 +6,7 @@ import (
 
 	"github.com/starter-go/units"
 	u2 "github.com/starter-go/units/modules/units"
+	"github.com/starter-go/vlog"
 )
 
 func TestRunFunc(t *testing.T) {
@@ -13,6 +14,7 @@ func TestRunFunc(t *testing.T) {
 	props := map[string]string{
 		"debug.enabled":        "1",
 		"debug.log-properties": "1",
+		"vlog.level":           "info",
 	}
 
 	units.Run(&units.Config{
@@ -24,4 +26,5 @@ func TestRunFunc(t *testing.T) {
 		UsePanic:   false,
 	})
 
+	vlog.Debug("done")
 }
