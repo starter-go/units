@@ -30,7 +30,8 @@ func (inst *autoRegistrar) register(factory comFactory) error {
 func (inst*autoRegistrar) addAll() error {
 
     
-    inst.register(&p0b30545e5e_unitcore_UnitCore{})
+    inst.register(&pef802692c2_runner1_RunnerV1{})
+    inst.register(&pfe207c1216_boot_Boot{})
 
 
     return nil

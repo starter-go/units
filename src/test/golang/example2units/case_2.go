@@ -1,4 +1,4 @@
-package unit
+package example2units
 
 // func TestModule(t *testing.T) {
 // 	mod := libcli.Module()

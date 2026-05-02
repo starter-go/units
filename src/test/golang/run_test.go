@@ -1,11 +1,9 @@
 package main
 
 import (
-	"os"
 	"testing"
 
 	"github.com/starter-go/units"
-	u2 "github.com/starter-go/units/modules/units"
 	"github.com/starter-go/vlog"
 )
 
@@ -17,14 +15,12 @@ func TestRunFunc(t *testing.T) {
 		"vlog.level":           "info",
 	}
 
-	units.Run(&units.Config{
-		Args:       os.Args,
-		Cases:      "test-4",
-		Module:     u2.ModuleForTest(),
-		T:          t,
-		Properties: props,
-		UsePanic:   false,
-	})
+	ctx := units.NewContext()
 
+	ctx.Module = nil
+	ctx.T = t
+	ctx.Properties = props
+
+	units.Run(ctx)
 	vlog.Debug("done")
 }

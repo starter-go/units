@@ -1,11 +1,19 @@
 package main
 
 import (
-	"os"
-
 	"github.com/starter-go/units"
+
+	u2 "github.com/starter-go/units/modules/units"
 )
 
 func main() {
-	units.NewRunner().Run(os.Args)
+
+	m := u2.ModuleForTest()
+	c := units.NewContext()
+	r := units.NewRunner()
+
+	c.Module = m
+
+	r.Run(c)
+
 }
