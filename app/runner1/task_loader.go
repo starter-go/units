@@ -60,6 +60,7 @@ func (inst *innerTaskLoader) innerLoadUnits(src []units.Unit) error {
 		it2 := new(innerTask)
 		it2.Info = *it1
 		it2.State = units.TaskStateInit
+		it2.Info.OnError = it1.OnError.Normalize()
 		dst = append(dst, it2)
 	}
 
@@ -117,11 +118,11 @@ func (inst *innerTaskLoader) innerSelect() error {
 	for _, item := range tasks {
 
 		info := &item.Info
-		if info.Alias == info.Name {
-			info.Alias = ""
+		if info.ID == info.Name {
+			info.Name = ""
 		}
 
-		err1 := inst.innerPutTaskToTable(table, info.Alias, item)
+		err1 := inst.innerPutTaskToTable(table, info.ID, item)
 		err2 := inst.innerPutTaskToTable(table, info.Name, item)
 
 		if err1 != nil {
@@ -166,12 +167,26 @@ func (inst *innerTaskLoader) Less(i1, i2 int) bool {
 	o1 := inst.tasks[i1]
 	o2 := inst.tasks[i2]
 
-	// by (index, priority)
+	info1 := &o1.Info
+	info2 := &o2.Info
 
-	if o1.Index != o2.Index {
-		return o1.Index > o2.Index
+	// by Priority
+	if info1.Priority != info2.Priority {
+		return info1.Priority > info2.Priority
 	}
-	return o1.Info.Priority < o2.Info.Priority
+
+	// by id
+	if info1.ID != info2.ID {
+		return strings.Compare(info1.ID, info2.ID) < 0
+	}
+
+	// by name
+	if info1.Name != info2.Name {
+		return strings.Compare(info1.Name, info2.Name) < 0
+	}
+
+	// by index
+	return o1.Index < o2.Index
 }
 func (inst *innerTaskLoader) Swap(i1, i2 int) {
 	l := inst.tasks

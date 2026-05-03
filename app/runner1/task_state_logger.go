@@ -3,6 +3,7 @@ package runner1
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/starter-go/vlog"
 )
@@ -13,7 +14,7 @@ type taskStateLogger struct {
 
 func (inst *taskStateLogger) Log(tasks []*innerTask) {
 
-	const bar = "--------------------------------------------------------------------------------"
+	bar := inst.innerGetHorzBar(128)
 
 	inst.buffer.WriteString("\n")
 	inst.innerLogRow(nil, true)
@@ -28,14 +29,31 @@ func (inst *taskStateLogger) Log(tasks []*innerTask) {
 	vlog.Info("%s", str)
 }
 
+func (inst *taskStateLogger) innerGetHorzBar(width int) string {
+	const part = "--------"
+	builder := new(strings.Builder)
+	count := 0
+	for count < width {
+		count += len(part)
+		builder.WriteString(part)
+	}
+	return builder.String()
+}
+
 func (inst *taskStateLogger) innerLogRow(task *innerTask, asHeader bool) {
 
 	inst.innerLogFieldIndex("Index", task, asHeader)
-	inst.innerLogFieldNameAlias("-", task, asHeader)
+	inst.innerLogFieldID("ID", task, asHeader)
+	inst.innerLogFieldName("Name", task, asHeader)
 
 	inst.innerLogFieldState("State", task, asHeader)
+	inst.innerLogFieldIsSelected("Selected", task, asHeader)
 	inst.innerLogFieldIsDone("Done", task, asHeader)
 	inst.innerLogFieldIsOK("OK", task, asHeader)
+
+	inst.innerLogFieldPriority("Priority", task, asHeader)
+	inst.innerLogFieldStartedAt("StartedAt", task, asHeader)
+	inst.innerLogFieldTimeSpan("Span", task, asHeader)
 
 	inst.innerLogFieldOnErrMethod("OnErrFn", task, asHeader)
 	inst.innerLogFieldError("Error", task, asHeader)
@@ -109,10 +127,28 @@ func (inst *taskStateLogger) innerLogFieldIsOK(name string, task *innerTask, asH
 	inst.innerWriteStringWithWidth(width, text)
 }
 
+func (inst *taskStateLogger) innerLogFieldIsSelected(name string, task *innerTask, asHeader bool) {
+
+	text := ""
+	width := 10
+
+	if asHeader {
+		text = name
+	} else {
+		if task.Selected {
+			text = "Yes"
+		} else {
+			text = "No"
+		}
+	}
+
+	inst.innerWriteStringWithWidth(width, text)
+}
+
 func (inst *taskStateLogger) innerLogFieldOnErrMethod(name string, task *innerTask, asHeader bool) {
 
 	text := ""
-	width := 8
+	width := 10
 
 	if asHeader {
 		text = name
@@ -123,25 +159,79 @@ func (inst *taskStateLogger) innerLogFieldOnErrMethod(name string, task *innerTa
 	inst.innerWriteStringWithWidth(width, text)
 }
 
-func (inst *taskStateLogger) innerLogFieldNameAlias(name string, task *innerTask, asHeader bool) {
+func (inst *taskStateLogger) innerLogFieldPriority(name string, task *innerTask, asHeader bool) {
+
+	// log:优先级
 
 	text := ""
-	width := 20
+	width := 10
 
 	if asHeader {
-		text = "Name(Alias)"
+		text = name
 	} else {
-		n1 := task.Info.Name
-		n2 := task.Info.Alias
-		if n2 == "" {
-			text = n1
-		} else {
-			text = n1 + "(" + n2 + ")"
-		}
+		p := task.Info.Priority
+		text = strconv.Itoa(p)
 	}
 
 	inst.innerWriteStringWithWidth(width, text)
+}
 
+func (inst *taskStateLogger) innerLogFieldStartedAt(name string, task *innerTask, asHeader bool) {
+
+	// log:开始时间戳
+
+	text := ""
+	width := 28
+
+	if asHeader {
+		text = name
+	} else {
+		t0 := task.StartedAt
+		text = t0.Format(time.DateTime)
+	}
+
+	inst.innerWriteStringWithWidth(width, text)
+}
+
+func (inst *taskStateLogger) innerLogFieldTimeSpan(name string, task *innerTask, asHeader bool) {
+
+	// log:耗时
+
+	text := ""
+	width := 15
+
+	if asHeader {
+		text = name
+	} else {
+		t0 := task.StartedAt
+		t1 := task.StoppedAt
+		span := t1.Sub(t0)
+		text = span.String()
+	}
+
+	inst.innerWriteStringWithWidth(width, text)
+}
+
+func (inst *taskStateLogger) innerLogFieldName(name string, task *innerTask, asHeader bool) {
+	text := ""
+	width := 16
+	if asHeader {
+		text = name
+	} else {
+		text = task.Info.Name
+	}
+	inst.innerWriteStringWithWidth(width, text)
+}
+
+func (inst *taskStateLogger) innerLogFieldID(name string, task *innerTask, asHeader bool) {
+	text := ""
+	width := 16
+	if asHeader {
+		text = name
+	} else {
+		text = task.Info.ID
+	}
+	inst.innerWriteStringWithWidth(width, text)
 }
 
 func (inst *taskStateLogger) innerLogFieldError(name string, task *innerTask, asHeader bool) {

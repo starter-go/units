@@ -19,6 +19,8 @@ type Context struct {
 
 	Properties map[string]string
 
+	Selector string // 用于选择需要测试的单元, 包括(ID选择器'#'; Class选择器'.'; 全部选择器'*')
+
 	Arguments []string
 }
 
@@ -40,7 +42,7 @@ type Runner interface {
 
 // NewRunner 新建一个 Runner
 func NewRunner() Runner {
-	return &bootRunner{}
+	return &RootRunner{}
 }
 
 // NewRunner 新建一个 units.Context

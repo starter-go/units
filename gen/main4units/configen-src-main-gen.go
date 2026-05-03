@@ -116,17 +116,17 @@ func (inst*pef802692c2_runner1_RunnerV1) getAC(ie application.InjectionExt)p0ef6
 
 
 func (inst*pef802692c2_runner1_RunnerV1) getMyName(ie application.InjectionExt)string{
-    return ie.GetString("${runner.UnitTestRunnerV1.name}")
+    return ie.GetString("${runner.runner1.name}")
 }
 
 
 func (inst*pef802692c2_runner1_RunnerV1) getMyAlias(ie application.InjectionExt)string{
-    return ie.GetString("${runner.UnitTestRunnerV1.alias}")
+    return ie.GetString("${runner.runner1.alias}")
 }
 
 
 func (inst*pef802692c2_runner1_RunnerV1) getEnabled(ie application.InjectionExt)bool{
-    return ie.GetBool("${runner.UnitTestRunnerV1.enabled}")
+    return ie.GetBool("${runner.runner1.enabled}")
 }
 
 

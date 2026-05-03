@@ -3,7 +3,8 @@ package units
 // Registration 测试单元注册信息
 type Registration struct {
 	Name        string
-	Alias       string
+	ID          string // 类似于 HTML 标签中的 'id' 属性, 用于 '#ID' 选择器
+	Class       string // 类似于 HTML 标签中的 'class' 属性, 用于 '.CLASS' 选择器
 	Description string
 	Enabled     bool
 	Priority    int

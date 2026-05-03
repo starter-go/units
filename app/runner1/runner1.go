@@ -29,9 +29,9 @@ type RunnerV1 struct {
 	UnitNameList string              //starter:inject("${units.list}")
 	AC           application.Context //starter:inject("context")
 
-	MyName  string //starter:inject("${runner.UnitTestRunnerV1.name}")
-	MyAlias string //starter:inject("${runner.UnitTestRunnerV1.alias}")
-	Enabled bool   //starter:inject("${runner.UnitTestRunnerV1.enabled}")
+	MyName  string //starter:inject("${runner.runner1.name}")
+	MyAlias string //starter:inject("${runner.runner1.alias}")
+	Enabled bool   //starter:inject("${runner.runner1.enabled}")
 
 }
 
@@ -57,7 +57,7 @@ func (inst *RunnerV1) Run(c *units.Context) error {
 	steps = append(steps, inst.innerDoLogInitState)
 	steps = append(steps, inst.innerDoRunTasks)
 	steps = append(steps, inst.innerDoLogFinishState)
-	steps = append(steps, inst.innerDoCheckLastError)
+	steps = append(steps, inst.innerDoCheckErrorList)
 
 	for _, fn := range steps {
 		err := fn(rc)
@@ -117,8 +117,17 @@ func (inst *RunnerV1) innerDoLogInitState(rc *runningContext) error {
 	return inst.innerDoLogAllTasksCurrentState(rc)
 }
 
-func (inst *RunnerV1) innerDoCheckLastError(rc *runningContext) error {
-	return rc.lastError
+func (inst *RunnerV1) innerDoCheckErrorList(rc *runningContext) error {
+	var err error
+	all := rc.tasks
+	for _, it := range all {
+		e := it.Error
+		if e == nil {
+			continue
+		}
+		err = e
+	}
+	return err
 }
 
 func (inst *RunnerV1) innerDoLogFinishState(rc *runningContext) error {
@@ -208,7 +217,7 @@ func (inst *RunnerV1) innerLogTaskInfo(t *innerTask) {
 
 	builder.WriteString("units.Unit" + nl)
 	builder.WriteString("  name: " + t.Info.Name + nl)
-	builder.WriteString("  alias: " + t.Info.Alias + nl)
+	builder.WriteString("  id: " + t.Info.ID + nl)
 	builder.WriteString("  description: " + t.Info.Description + nl)
 
 	str := builder.String()

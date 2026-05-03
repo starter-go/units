@@ -13,6 +13,8 @@ type innerTask struct {
 
 	Error error
 
+	Message string
+
 	Done bool // 表示是否已经执行
 
 	OK bool // 表示是否成功运行
