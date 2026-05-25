@@ -13,6 +13,7 @@ type Boot struct {
 
 	//starter:component
 
+	AC          application.Context    //starter:inject("context")
 	RunnerList  []units.RunnerRegistry //starter:inject(".")
 	RunnerAlias string                 //starter:inject("${units.runner}")
 
@@ -22,8 +23,14 @@ type Boot struct {
 // Life implements application.Lifecycle.
 func (inst *Boot) Life() *application.Life {
 	l := new(application.Life)
+	l.OnStart = inst.onStart
 	l.OnLoop = inst.run
 	return l
+}
+
+func (inst *Boot) onStart() error {
+	inst.innerListAllUnits()
+	return nil
 }
 
 func (inst *Boot) run() error {
@@ -53,6 +60,54 @@ func (inst *Boot) innerGetRunner() (units.Runner, error) {
 		inst.runner = loaded
 	}
 	return r, nil
+}
+
+func (inst *Boot) innerListAllUnits() error {
+
+	// 列出所有的测试单元
+
+	const bar = "---------------------------------------------------------------"
+
+	vlog.Info("List All Units")
+	vlog.Info(bar)
+
+	ac := inst.AC
+	allcom := ac.GetComponents()
+	ids := allcom.ListIDs()
+	src := make([]units.Unit, 0)
+	tmp := make([]*units.Registration, 0)
+
+	for _, id := range ids {
+		holder, err := allcom.Get(id)
+		if err != nil {
+			continue
+		}
+		ref, err := holder.GetInstance()
+		if err != nil {
+			continue
+		}
+		com := ref.Get()
+		u1, ok := com.(units.Unit)
+		if ok {
+			src = append(src, u1)
+		}
+	}
+
+	for _, u := range src {
+		tmp = u.ListRegistrations(tmp)
+	}
+
+	for _, u := range tmp {
+		name := u.Name
+		id := u.ID
+		cl := u.Class
+		en := u.Enabled
+		priority := u.Priority
+		vlog.Info("units.[Unit id:'%s' name:'%s' class:'%s' enabled:%v priority:%v]", id, name, cl, en, priority)
+	}
+
+	vlog.Info(bar)
+	return nil
 }
 
 func (inst *Boot) _impl() application.Lifecycle {

@@ -38,11 +38,17 @@ func (inst* pfe207c1216_boot_Boot) inject(injext application.InjectionExt, insta
 	nop(ie, com)
 
 	
+    com.AC = inst.getAC(ie)
     com.RunnerList = inst.getRunnerList(ie)
     com.RunnerAlias = inst.getRunnerAlias(ie)
 
 
     return nil
+}
+
+
+func (inst*pfe207c1216_boot_Boot) getAC(ie application.InjectionExt)p0ef6f2938.Context{
+    return ie.GetContext()
 }
 
 
