@@ -1,8 +1,10 @@
 package main4units
 import (
+    p0d2a11d16 "github.com/starter-go/afs"
     p0ef6f2938 "github.com/starter-go/application"
     p0dc072ed4 "github.com/starter-go/units"
     pfe207c121 "github.com/starter-go/units/app/boot"
+    p18376513c "github.com/starter-go/units/app/dirmanager"
     pef802692c "github.com/starter-go/units/app/runner1"
      "github.com/starter-go/application"
 )
@@ -65,6 +67,62 @@ func (inst*pfe207c1216_boot_Boot) getRunnerList(ie application.InjectionExt)[]p0
 
 func (inst*pfe207c1216_boot_Boot) getRunnerAlias(ie application.InjectionExt)string{
     return ie.GetString("${units.runner}")
+}
+
+
+
+// type p18376513c.DirManagerImpl in package:github.com/starter-go/units/app/dirmanager
+//
+// id:com-18376513c555e28e-dirmanager-DirManagerImpl
+// class:
+// alias:alias-0dc072ed44b3563882bff4e657a52e62-DirManager
+// scope:singleton
+//
+type p18376513c5_dirmanager_DirManagerImpl struct {
+}
+
+func (inst* p18376513c5_dirmanager_DirManagerImpl) register(cr application.ComponentRegistry) error {
+	r := cr.NewRegistration()
+	r.ID = "com-18376513c555e28e-dirmanager-DirManagerImpl"
+	r.Classes = ""
+	r.Aliases = "alias-0dc072ed44b3563882bff4e657a52e62-DirManager"
+	r.Scope = "singleton"
+	r.NewFunc = inst.new
+	r.InjectFunc = inst.inject
+	return r.Commit()
+}
+
+func (inst* p18376513c5_dirmanager_DirManagerImpl) new() any {
+    return &p18376513c.DirManagerImpl{}
+}
+
+func (inst* p18376513c5_dirmanager_DirManagerImpl) inject(injext application.InjectionExt, instance any) error {
+	ie := injext
+	com := instance.(*p18376513c.DirManagerImpl)
+	nop(ie, com)
+
+	
+    com.AC = inst.getAC(ie)
+    com.AFS = inst.getAFS(ie)
+    com.TheUnitsWorkingDir = inst.getTheUnitsWorkingDir(ie)
+
+
+    return nil
+}
+
+
+func (inst*p18376513c5_dirmanager_DirManagerImpl) getAC(ie application.InjectionExt)p0ef6f2938.Context{
+    return ie.GetContext()
+}
+
+
+func (inst*p18376513c5_dirmanager_DirManagerImpl) getAFS(ie application.InjectionExt)p0d2a11d16.FS{
+    return ie.GetComponent("#alias-0d2a11d163e349503a64168a1cdf48a2-FS").(p0d2a11d16.FS)
+}
+
+
+func (inst*p18376513c5_dirmanager_DirManagerImpl) getTheUnitsWorkingDir(ie application.InjectionExt)string{
+    return ie.GetString("${units.working.dir}")
 }
 
 

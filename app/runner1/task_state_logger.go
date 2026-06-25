@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/starter-go/units"
 	"github.com/starter-go/vlog"
 )
 
@@ -12,7 +13,7 @@ type taskStateLogger struct {
 	buffer strings.Builder
 }
 
-func (inst *taskStateLogger) Log(tasks []*innerTask) {
+func (inst *taskStateLogger) Log(tasks []*units.UnitHolder) {
 
 	bar := inst.innerGetHorzBar(128)
 
@@ -40,11 +41,10 @@ func (inst *taskStateLogger) innerGetHorzBar(width int) string {
 	return builder.String()
 }
 
-func (inst *taskStateLogger) innerLogRow(task *innerTask, asHeader bool) {
+func (inst *taskStateLogger) innerLogRow(task *units.UnitHolder, asHeader bool) {
 
 	inst.innerLogFieldIndex("Index", task, asHeader)
-	inst.innerLogFieldID("ID", task, asHeader)
-	inst.innerLogFieldName("Name", task, asHeader)
+	inst.innerLogFieldIDandName("ID", "Name", task, asHeader)
 
 	inst.innerLogFieldState("State", task, asHeader)
 	inst.innerLogFieldIsSelected("Selected", task, asHeader)
@@ -61,7 +61,7 @@ func (inst *taskStateLogger) innerLogRow(task *innerTask, asHeader bool) {
 	inst.buffer.WriteString("\n")
 }
 
-func (inst *taskStateLogger) innerLogFieldIndex(name string, task *innerTask, asHeader bool) {
+func (inst *taskStateLogger) innerLogFieldIndex(name string, task *units.UnitHolder, asHeader bool) {
 
 	text := ""
 	width := 6
@@ -76,10 +76,10 @@ func (inst *taskStateLogger) innerLogFieldIndex(name string, task *innerTask, as
 	inst.innerWriteStringWithWidth(width, text)
 }
 
-func (inst *taskStateLogger) innerLogFieldState(name string, task *innerTask, asHeader bool) {
+func (inst *taskStateLogger) innerLogFieldState(name string, task *units.UnitHolder, asHeader bool) {
 
 	text := ""
-	width := 8
+	width := 10
 
 	if asHeader {
 		text = name
@@ -91,7 +91,7 @@ func (inst *taskStateLogger) innerLogFieldState(name string, task *innerTask, as
 	inst.innerWriteStringWithWidth(width, text)
 }
 
-func (inst *taskStateLogger) innerLogFieldIsDone(name string, task *innerTask, asHeader bool) {
+func (inst *taskStateLogger) innerLogFieldIsDone(name string, task *units.UnitHolder, asHeader bool) {
 
 	text := ""
 	width := 6
@@ -109,7 +109,7 @@ func (inst *taskStateLogger) innerLogFieldIsDone(name string, task *innerTask, a
 	inst.innerWriteStringWithWidth(width, text)
 }
 
-func (inst *taskStateLogger) innerLogFieldIsOK(name string, task *innerTask, asHeader bool) {
+func (inst *taskStateLogger) innerLogFieldIsOK(name string, task *units.UnitHolder, asHeader bool) {
 
 	text := ""
 	width := 6
@@ -127,7 +127,7 @@ func (inst *taskStateLogger) innerLogFieldIsOK(name string, task *innerTask, asH
 	inst.innerWriteStringWithWidth(width, text)
 }
 
-func (inst *taskStateLogger) innerLogFieldIsSelected(name string, task *innerTask, asHeader bool) {
+func (inst *taskStateLogger) innerLogFieldIsSelected(name string, task *units.UnitHolder, asHeader bool) {
 
 	text := ""
 	width := 10
@@ -145,7 +145,7 @@ func (inst *taskStateLogger) innerLogFieldIsSelected(name string, task *innerTas
 	inst.innerWriteStringWithWidth(width, text)
 }
 
-func (inst *taskStateLogger) innerLogFieldOnErrMethod(name string, task *innerTask, asHeader bool) {
+func (inst *taskStateLogger) innerLogFieldOnErrMethod(name string, task *units.UnitHolder, asHeader bool) {
 
 	text := ""
 	width := 10
@@ -159,7 +159,7 @@ func (inst *taskStateLogger) innerLogFieldOnErrMethod(name string, task *innerTa
 	inst.innerWriteStringWithWidth(width, text)
 }
 
-func (inst *taskStateLogger) innerLogFieldPriority(name string, task *innerTask, asHeader bool) {
+func (inst *taskStateLogger) innerLogFieldPriority(name string, task *units.UnitHolder, asHeader bool) {
 
 	// log:优先级
 
@@ -176,7 +176,7 @@ func (inst *taskStateLogger) innerLogFieldPriority(name string, task *innerTask,
 	inst.innerWriteStringWithWidth(width, text)
 }
 
-func (inst *taskStateLogger) innerLogFieldStartedAt(name string, task *innerTask, asHeader bool) {
+func (inst *taskStateLogger) innerLogFieldStartedAt(name string, task *units.UnitHolder, asHeader bool) {
 
 	// log:开始时间戳
 
@@ -186,14 +186,14 @@ func (inst *taskStateLogger) innerLogFieldStartedAt(name string, task *innerTask
 	if asHeader {
 		text = name
 	} else {
-		t0 := task.StartedAt
+		t0 := task.StartedAt.Time()
 		text = t0.Format(time.DateTime)
 	}
 
 	inst.innerWriteStringWithWidth(width, text)
 }
 
-func (inst *taskStateLogger) innerLogFieldTimeSpan(name string, task *innerTask, asHeader bool) {
+func (inst *taskStateLogger) innerLogFieldTimeSpan(name string, task *units.UnitHolder, asHeader bool) {
 
 	// log:耗时
 
@@ -212,29 +212,34 @@ func (inst *taskStateLogger) innerLogFieldTimeSpan(name string, task *innerTask,
 	inst.innerWriteStringWithWidth(width, text)
 }
 
-func (inst *taskStateLogger) innerLogFieldName(name string, task *innerTask, asHeader bool) {
+func (inst *taskStateLogger) innerLogFieldIDandName(id, name string, task *units.UnitHolder, asHeader bool) {
 	text := ""
-	width := 16
+	width := 50
 	if asHeader {
-		text = name
+		text = id + "/" + name
 	} else {
-		text = task.Info.Name
+		str1 := strings.TrimSpace(task.Info.ID)
+		str2 := strings.TrimSpace(task.Info.Name)
+		if str2 == str1 {
+			str2 = ""
+		}
+		text = str1 + "/" + str2
 	}
 	inst.innerWriteStringWithWidth(width, text)
 }
 
-func (inst *taskStateLogger) innerLogFieldID(name string, task *innerTask, asHeader bool) {
-	text := ""
-	width := 16
-	if asHeader {
-		text = name
-	} else {
-		text = task.Info.ID
-	}
-	inst.innerWriteStringWithWidth(width, text)
-}
+// func (inst *taskStateLogger) innerLogFieldID(name string, task *units.UnitHolder, asHeader bool) {
+// 	text := ""
+// 	width := 16
+// 	if asHeader {
+// 		text = name
+// 	} else {
+// 		text = task.Info.ID
+// 	}
+// 	inst.innerWriteStringWithWidth(width, text)
+// }
 
-func (inst *taskStateLogger) innerLogFieldError(name string, task *innerTask, asHeader bool) {
+func (inst *taskStateLogger) innerLogFieldError(name string, task *units.UnitHolder, asHeader bool) {
 
 	text := ""
 	width := 32

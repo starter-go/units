@@ -30,6 +30,7 @@ func (inst *autoRegistrar) register(factory comFactory) error {
 func (inst*autoRegistrar) addAll() error {
 
     
+    inst.register(&p370fb552a1_example2units_CaseTryDirMan{})
     inst.register(&p370fb552a1_example2units_Test1{})
 
 

@@ -1,12 +1,13 @@
 package runner1
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/starter-go/application"
+	"github.com/starter-go/base/lang"
 	"github.com/starter-go/units"
 	"github.com/starter-go/vlog"
 )
@@ -51,8 +52,12 @@ type RunnerV1 struct {
 func (inst *RunnerV1) Run(c *units.Context) error {
 
 	steps := make([]func(rc *runningContext) error, 0)
-	rc := new(runningContext)
 
+	rc := new(runningContext)
+	rc.tc = c
+	rc.cc = c.CC
+
+	steps = append(steps, inst.innerDoPrepareContexts)
 	steps = append(steps, inst.innerDoLoadTasks)
 	steps = append(steps, inst.innerDoLogInitState)
 	steps = append(steps, inst.innerDoRunTasks)
@@ -89,11 +94,15 @@ func (inst *RunnerV1) innerDoXX(rc *runningContext) error {
 func (inst *RunnerV1) innerDoRunTasks(rc *runningContext) error {
 
 	list := rc.tasks
+	tc := rc.tc
 
 	defer func() {
 		x := recover()
 		inst.innerHandleErrorX(nil, x)
+		tc.StoppedAt = lang.Now()
 	}()
+
+	tc.StartedAt = lang.Now()
 
 	for idx, task := range list {
 		task.Index = idx
@@ -143,14 +152,49 @@ func (inst *RunnerV1) innerDoLogAllTasksCurrentState(rc *runningContext) error {
 	return nil
 }
 
-func (inst *RunnerV1) innerRun1(rc *runningContext, t *innerTask) error {
+func (inst *RunnerV1) innerReloadUnitContext(rc *runningContext, t *units.UnitHolder) (*units.UnitContext, error) {
+
+	cc := rc.cc
+	tc := rc.tc
+	uc := new(units.UnitContext)
+
+	holder, err := units.GetContextHolder(cc)
+	if err != nil {
+		return nil, err
+	}
+
+	p1 := tc.Properties
+	p2 := make(map[string]string)
+	for k, v := range p1 {
+		p2[k] = v
+	}
+
+	uc.Parent = tc
+	uc.Unit = t.Ref
+	uc.Properties = p2
+
+	holder.UC = uc
+	rc.uc = uc
+
+	return uc, nil
+}
+
+func (inst *RunnerV1) innerRun1(rc *runningContext, t *units.UnitHolder) error {
 
 	if !inst.innerAcceptTask(t) {
 		t.State = units.TaskStateIgnored
 		return nil
 	}
 
+	uc, err := inst.innerReloadUnitContext(rc, t)
+	if err != nil {
+		return err
+	}
+
 	defer func() {
+
+		uc.StoppedAt = lang.Now()
+
 		x := recover()
 		if x == nil {
 			return
@@ -164,7 +208,9 @@ func (inst *RunnerV1) innerRun1(rc *runningContext, t *innerTask) error {
 		// panic(x)
 	}()
 
-	err := inst.innerRun2(rc, t)
+	uc.StartedAt = lang.Now()
+
+	err = inst.innerRun2(rc, t)
 	if err != nil {
 		rc.abort = true
 		t.Error = err
@@ -176,16 +222,17 @@ func (inst *RunnerV1) innerRun1(rc *runningContext, t *innerTask) error {
 	return err
 }
 
-func (inst *RunnerV1) innerRun2(rc *runningContext, t *innerTask) error {
+func (inst *RunnerV1) innerRun2(rc *runningContext, t *units.UnitHolder) error {
 
-	now := time.Now()
+	now := lang.Now()
 	bar := inst.innerGetBarString()
+	cc := rc.cc
 
 	vlog.Info(bar)
 	inst.innerLogTaskInfo(t)
 
 	defer func() {
-		now = time.Now()
+		now = lang.Now()
 		t.Done = true
 		t.StoppedAt = now
 
@@ -197,7 +244,7 @@ func (inst *RunnerV1) innerRun2(rc *runningContext, t *innerTask) error {
 	t.StartedAt = now
 	fn := t.Info.Do
 
-	err := fn()
+	err := fn(cc)
 
 	if err == nil {
 		t.OK = true
@@ -210,7 +257,7 @@ func (inst *RunnerV1) innerRun2(rc *runningContext, t *innerTask) error {
 	return err
 }
 
-func (inst *RunnerV1) innerLogTaskInfo(t *innerTask) {
+func (inst *RunnerV1) innerLogTaskInfo(t *units.UnitHolder) {
 
 	const nl = "\n"
 	builder := new(strings.Builder)
@@ -228,7 +275,7 @@ func (inst *RunnerV1) innerGetBarString() string {
 	return "////////////////////////////////////////////////////////////////////////////////"
 }
 
-func (inst *RunnerV1) innerAcceptTask(t *innerTask) bool {
+func (inst *RunnerV1) innerAcceptTask(t *units.UnitHolder) bool {
 
 	if t == nil {
 		return false
@@ -245,7 +292,7 @@ func (inst *RunnerV1) innerAcceptTask(t *innerTask) bool {
 	return true
 }
 
-func (inst *RunnerV1) innerFilterError(t *innerTask, err error) error {
+func (inst *RunnerV1) innerFilterError(t *units.UnitHolder, err error) error {
 
 	if err == nil {
 		return nil
@@ -298,14 +345,53 @@ func (inst *RunnerV1) innerLoadUnitList() []units.Unit {
 	return dst
 }
 
+func (inst *RunnerV1) innerDoPrepareContexts(rc *runningContext) error {
+
+	cc := rc.cc
+	tc := rc.tc
+	uc := new(units.UnitContext)
+	ac := inst.AC
+
+	if cc == nil {
+		cc = context.Background()
+	}
+
+	holder, err := units.SetupContextHolder(cc)
+	if err != nil {
+		return err
+	}
+
+	cc = holder.CC
+
+	rc.cc = cc
+	rc.tc = tc
+	rc.uc = uc
+
+	tc.Module = ac.GetMainModule()
+
+	uc.Parent = tc
+	uc.Properties = tc.Properties
+
+	holder.CC = cc
+	holder.TC = tc
+	holder.UC = uc
+
+	return nil
+}
+
 func (inst *RunnerV1) innerDoLoadTasks(rc *runningContext) error {
+
 	loader := new(innerTaskLoader)
 	rawNameList := inst.UnitNameList
 	rawUnitList := inst.innerLoadUnitList()
 	tasks, err := loader.load(rawUnitList, rawNameList)
 
 	if err == nil {
+
+		tc := rc.tc
+
 		rc.tasks = tasks
+		tc.Units = tasks
 	}
 
 	return err

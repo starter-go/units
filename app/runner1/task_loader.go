@@ -10,10 +10,10 @@ import (
 
 type innerTaskLoader struct {
 	namelist []string
-	tasks    []*innerTask
+	tasks    []*units.UnitHolder
 }
 
-func (inst *innerTaskLoader) load(ulist []units.Unit, namelist string) ([]*innerTask, error) {
+func (inst *innerTaskLoader) load(ulist []units.Unit, namelist string) ([]*units.UnitHolder, error) {
 
 	inst.namelist = nil
 	inst.tasks = nil
@@ -57,8 +57,9 @@ func (inst *innerTaskLoader) innerLoadUnits(src []units.Unit) error {
 		if it1.Do == nil {
 			continue
 		}
-		it2 := new(innerTask)
+		it2 := new(units.UnitHolder)
 		it2.Info = *it1
+		it2.Ref = it1
 		it2.State = units.TaskStateInit
 		it2.Info.OnError = it1.OnError.Normalize()
 		dst = append(dst, it2)
@@ -90,7 +91,7 @@ func (inst *innerTaskLoader) innerSort() {
 	sort.Sort(inst)
 }
 
-func (inst *innerTaskLoader) innerPutTaskToTable(table map[string]*innerTask, name string, task *innerTask) error {
+func (inst *innerTaskLoader) innerPutTaskToTable(table map[string]*units.UnitHolder, name string, task *units.UnitHolder) error {
 
 	if table == nil || task == nil {
 		return nil
@@ -111,7 +112,7 @@ func (inst *innerTaskLoader) innerPutTaskToTable(table map[string]*innerTask, na
 
 func (inst *innerTaskLoader) innerSelect() error {
 
-	table := make(map[string]*innerTask)
+	table := make(map[string]*units.UnitHolder)
 	namelist := inst.namelist
 	tasks := inst.tasks
 
@@ -144,7 +145,7 @@ func (inst *innerTaskLoader) innerSelect() error {
 	return nil
 }
 
-func (inst *innerTaskLoader) acceptItem(item *innerTask) bool {
+func (inst *innerTaskLoader) acceptItem(item *units.UnitHolder) bool {
 
 	if item == nil {
 		return false

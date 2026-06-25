@@ -1,6 +1,7 @@
 package example2units
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/starter-go/units"
@@ -55,19 +56,19 @@ func (inst *Test1) ListRegistrations(list []*units.Registration) []*units.Regist
 	return list
 }
 
-func (inst *Test1) test1() error {
+func (inst *Test1) test1(cc context.Context) error {
 	return nil
 }
 
-func (inst *Test1) test2() error {
+func (inst *Test1) test2(cc context.Context) error {
 	return fmt.Errorf("test2: error")
 }
 
-func (inst *Test1) test3() error {
+func (inst *Test1) test3(cc context.Context) error {
 	panic("test3: panic")
 	// return nil
 }
 
-func (inst *Test1) test4() error {
+func (inst *Test1) test4(cc context.Context) error {
 	return nil
 }

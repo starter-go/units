@@ -1,5 +1,7 @@
 package units
 
+import "context"
+
 // Registration 测试单元注册信息
 type Registration struct {
 	Name        string
@@ -10,7 +12,7 @@ type Registration struct {
 	Priority    int
 	OnError     OnErrorMethod
 
-	Do func() error
+	Do func(c context.Context) error
 }
 
 // Unit 测试单元注册接口
